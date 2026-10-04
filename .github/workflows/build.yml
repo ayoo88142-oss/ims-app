@@ -14,13 +14,68 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-      - name: Fix project
+      - name: Build fresh IMS project
         run: |
-          cp lib/main.dart /tmp/main.dart
-          cp pubspec.yaml /tmp/pubspec.yaml
-          flutter create . --platforms=android --project-name ims_app --overwrite
-          cp /tmp/main.dart lib/main.dart
-          cp /tmp/pubspec.yaml pubspec.yaml
+          flutter create. --project-name ims_app --overwrite
+          cat > lib/main.dart << 'DART'
+          import 'package:flutter/material.dart';
+          void main() => runApp(IMSApp());
+          class IMSApp extends StatelessWidget {
+            @override
+            Widget build(BuildContext context) {
+              return MaterialApp(
+                debugShowCheckedModeBanner: false,
+                title: 'IMS App',
+                theme: ThemeData(primarySwatch: Colors.blue, useMaterial3: true),
+                home: IMSHome(),
+              );
+            }
+          }
+          class Product { String name; int qty; double price; Product(this.name, this.qty, this.price); }
+          class IMSHome extends StatefulWidget { @override State<IMSHome> createState() => _IMSHomeState(); }
+          class _IMSHomeState extends State<IMSHome> {
+            List<Product> products = [Product('Paracétamol', 120, 500), Product('Amoxicilline', 75, 1200), Product('Vitamine C', 200, 800)];
+            final _nameC = TextEditingController(); final _qtyC = TextEditingController(); final _priceC = TextEditingController();
+            void _add() {
+              if (_nameC.text.isEmpty) return;
+              setState(() { products.add(Product(_nameC.text, int.tryParse(_qtyC.text)?? 0, double.tryParse(_priceC.text)?? 0)); });
+              _nameC.clear(); _qtyC.clear(); _priceC.clear(); Navigator.pop(context);
+            }
+            void _showAdd() {
+              showDialog(context: context, builder: (_) => AlertDialog(
+                title: Text('Ajouter produit'),
+                content: Column(mainAxisSize: MainAxisSize.min, children: [
+                  TextField(controller: _nameC, decoration: InputDecoration(labelText: 'Nom')),
+                  TextField(controller: _qtyC, decoration: InputDecoration(labelText: 'Quantité'), keyboardType: TextInputType.number),
+                  TextField(controller: _priceC, decoration: InputDecoration(labelText: 'Prix'), keyboardType: TextInputType.number),
+                ]),
+                actions: [TextButton(onPressed: ()=>Navigator.pop(context), child: Text('Annuler')), ElevatedButton(onPressed: _add, child: Text('Ajouter'))],
+              ));
+            }
+            @override
+            Widget build(BuildContext context) {
+              return Scaffold(
+                appBar: AppBar(title: Text('IMS - Gestion Stock'), centerTitle: true),
+                body: Column(children: [
+                  Container(padding: EdgeInsets.all(16), color: Colors.blue.shade50, child: Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
+                    Column(children: [Text('${products.length}', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)), Text('Produits')]),
+                    Column(children: [Text('${products.fold(0, (s,p)=>s+p.qty)}', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)), Text('Total Qté')]),
+                  ])),
+                  Expanded(child: ListView.builder(itemCount: products.length, itemBuilder: (_, i) {
+                    final p = products[i];
+                    return Card(margin: EdgeInsets.symmetric(horizontal: 12, vertical: 6), child: ListTile(
+                      leading: CircleAvatar(child: Text(p.name[0])),
+                      title: Text(p.name, style: TextStyle(fontWeight: FontWeight.bold)),
+                      subtitle: Text('Qté: ${p.qty} | Prix: ${p.price} FCFA'),
+                      trailing: IconButton(icon: Icon(Icons.delete, color: Colors.red), onPressed: ()=>setState(()=>products.removeAt(i))),
+                    ));
+                  })),
+                ]),
+                floatingActionButton: FloatingActionButton(onPressed: _showAdd, child: Icon(Icons.add)),
+              );
+            }
+          }
+          DART
           flutter pub get
       - run: flutter build apk --release
       - uses: actions/upload-artifact@v4
