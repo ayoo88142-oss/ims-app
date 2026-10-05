@@ -16,7 +16,7 @@ jobs:
         run: |
           rm -rf android
           flutter create mytemp --platforms=android
-          cp -r mytemp/android.
+          cp -r mytemp/android./
           rm -rf mytemp
       - run: flutter pub get
       - run: flutter build apk --release
