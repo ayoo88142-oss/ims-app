@@ -12,15 +12,17 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.24.5'
-      - name: Sauvegarder IMS
+      - name: Backup IMS code
         run: cp lib/main.dart /tmp/ims_main.dart
-      - name: Réparer Gradle
-        run: flutter create -t app --platforms=android --project-name ims_app. --overwrite
-      - name: Restaurer IMS
+      - name: Fix android folder
+        run: |
+          rm -rf android
+          flutter create. --platforms=android
+      - name: Restore IMS code
         run: cp /tmp/ims_main.dart lib/main.dart
       - run: flutter pub get
       - run: flutter build apk --release
       - uses: actions/upload-artifact@v4
         with:
           name: ims-app-apk
-          path: build/app/outputs/flutter-apk/app-release.ap
+          path: build/app/outputs/flutter-apk/app-release.apk
