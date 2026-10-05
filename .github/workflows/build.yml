@@ -12,14 +12,13 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.24.5'
-      - name: Backup IMS
-        run: cp lib/main.dart /tmp/ims_main.dart
-      - name: Fix android folder
+          channel: stable
+      - name: Fix android completely
         run: |
           rm -rf android
-          flutter create --platforms=android.
-      - name: Restore IMS
-        run: cp /tmp/ims_main.dart lib/main.dart
+          flutter create temp_fix --platforms=android --project-name ims_app
+          cp -r temp_fix/android./android
+          rm -rf temp_fix
       - run: flutter pub get
       - run: flutter build apk --release
       - uses: actions/upload-artifact@v4
