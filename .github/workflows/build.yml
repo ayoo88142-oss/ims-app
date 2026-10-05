@@ -12,13 +12,12 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.24.5'
-          channel: stable
-      - name: Fix android completely
+      - name: Fix android
         run: |
           rm -rf android
-          flutter create temp_fix --platforms=android --project-name ims_app
-          cp -r temp_fix/android./android
-          rm -rf temp_fix
+          flutter create mytemp --platforms=android
+          cp -r mytemp/android.
+          rm -rf mytemp
       - run: flutter pub get
       - run: flutter build apk --release
       - uses: actions/upload-artifact@v4
