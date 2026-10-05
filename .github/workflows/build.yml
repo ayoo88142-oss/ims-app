@@ -12,13 +12,13 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.24.5'
-      - name: Backup IMS code
+      - name: Backup IMS
         run: cp lib/main.dart /tmp/ims_main.dart
       - name: Fix android folder
         run: |
           rm -rf android
-          flutter create. --platforms=android
-      - name: Restore IMS code
+          flutter create --platforms=android.
+      - name: Restore IMS
         run: cp /tmp/ims_main.dart lib/main.dart
       - run: flutter pub get
       - run: flutter build apk --release
